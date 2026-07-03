@@ -10,38 +10,42 @@ interface Props {
 
 export default function ThreatTable({ threats, onSelect, selected }: Props) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr className="border-b border-gray-800 bg-gray-800/50">
-            {['Threat ID', 'Event', 'Severity', 'User', 'Source IP', 'Time', 'Status'].map(h => (
-              <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <tr style={{ borderBottom: '1px solid #1f2937', background: 'rgba(31,41,55,0.5)' }}>
+            {['Threat ID','Event','Severity','User','Source IP','Time','Status'].map(h => (
+              <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: '600' }}>
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-800">
-          {threats.map(t => (
+        <tbody>
+          {threats.map((t, i) => (
             <tr
               key={t.threat_id}
               onClick={() => onSelect?.(t)}
-              className={`transition-colors ${onSelect ? 'cursor-pointer hover:bg-gray-800/50' : ''} ${selected?.threat_id === t.threat_id ? 'bg-blue-900/20' : ''}`}
+              style={{
+                borderBottom: '1px solid #1f2937',
+                cursor: onSelect ? 'pointer' : 'default',
+                background: selected?.threat_id === t.threat_id
+                  ? 'rgba(37,99,235,0.1)'
+                  : i % 2 === 0 ? 'transparent' : 'rgba(17,24,39,0.3)'
+              }}
             >
-              <td className="px-4 py-3 text-blue-400 text-xs font-mono">{t.threat_id}</td>
-              <td className="px-4 py-3 text-gray-300 text-sm">{t.event_type}</td>
-              <td className="px-4 py-3"><SeverityBadge severity={t.severity} /></td>
-              <td className="px-4 py-3 text-gray-400 text-sm">{t.username}</td>
-              <td className="px-4 py-3 text-gray-400 text-sm font-mono">{t.source_ip}</td>
-              <td className="px-4 py-3 text-gray-400 text-sm">
-                {new Date(t.timestamp).toLocaleString()}
-              </td>
-              <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
+              <td style={{ padding: '12px 16px', color: '#60a5fa', fontSize: '12px', fontFamily: 'monospace' }}>{t.threat_id}</td>
+              <td style={{ padding: '12px 16px', color: '#d1d5db', fontSize: '13px' }}>{t.event_type}</td>
+              <td style={{ padding: '12px 16px' }}><SeverityBadge severity={t.severity} /></td>
+              <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: '13px' }}>{t.username}</td>
+              <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: '12px', fontFamily: 'monospace' }}>{t.source_ip}</td>
+              <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: '12px' }}>{new Date(t.timestamp).toLocaleString()}</td>
+              <td style={{ padding: '12px 16px' }}><StatusBadge status={t.status} /></td>
             </tr>
           ))}
           {threats.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+              <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>
                 No threats found
               </td>
             </tr>

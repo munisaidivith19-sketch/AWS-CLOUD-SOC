@@ -1,32 +1,47 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { User } from '../types'
+import { createContext, useContext, useState, ReactNode } from 'react'
+
+interface User {
+  username: string
+  role: string
+  full_name: string
+  access_token: string
+}
 
 interface AuthContextType {
   user: User | null
-  loginUser: (userData: User) => void
+  loginUser: (u: User) => void
   logoutUser: () => void
   isAuthenticated: boolean
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType)
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loginUser: () => {},
+  logoutUser: () => {},
+  isAuthenticated: false
+})
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    const stored = localStorage.getItem('soc_user')
-    if (stored) setUser(JSON.parse(stored))
-  }, [])
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const s = localStorage.getItem('soc_user')
+      return s ? JSON.parse(s) : null
+    } catch {
+      return null
+    }
+  })
 
   const loginUser = (userData: User) => {
     setUser(userData)
-    localStorage.setItem('soc_user', JSON.stringify(userData))
-    localStorage.setItem('soc_token', userData.access_token)
+    try {
+      localStorage.setItem('soc_user', JSON.stringify(userData))
+      localStorage.setItem('soc_token', userData.access_token)
+    } catch {}
   }
 
   const logoutUser = () => {
     setUser(null)
-    localStorage.clear()
+    try { localStorage.clear() } catch {}
     window.location.href = '/login'
   }
 

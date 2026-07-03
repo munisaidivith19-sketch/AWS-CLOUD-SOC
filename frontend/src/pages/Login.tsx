@@ -28,9 +28,8 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0e1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      {/* Background grid */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+    <div style={{ minHeight: '100vh', background: '#0a0e1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', position: 'relative' }}>
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px)', backgroundSize: '50px 50px' }} />
 
       <div style={{ position: 'relative', width: '100%', maxWidth: '420px' }}>
         {/* Header */}
@@ -41,7 +40,7 @@ export default function Login() {
             </svg>
           </div>
           <h1 style={{ color: 'white', fontSize: '28px', fontWeight: 'bold', margin: 0 }}>AWS Cloud SOC</h1>
-          <p style={{ color: '#9ca3af', marginTop: '8px' }}>Security Operations Center</p>
+          <p style={{ color: '#9ca3af', marginTop: '8px', margin: '8px 0 0' }}>Security Operations Center</p>
         </div>
 
         {/* Card */}
@@ -51,11 +50,8 @@ export default function Login() {
           </h2>
 
           <form onSubmit={handleLogin}>
-            {/* Username */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: '14px', marginBottom: '8px' }}>
-                Username
-              </label>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: '14px', marginBottom: '8px' }}>Username</label>
               <input
                 type="text"
                 value={username}
@@ -66,11 +62,8 @@ export default function Login() {
               />
             </div>
 
-            {/* Password */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: '14px', marginBottom: '8px' }}>
-                Password
-              </label>
+              <label style={{ display: 'block', color: '#9ca3af', fontSize: '14px', marginBottom: '8px' }}>Password</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPass ? 'text' : 'password'}
@@ -83,21 +76,19 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '12px' }}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '11px' }}
                 >
                   {showPass ? 'HIDE' : 'SHOW'}
                 </button>
               </div>
             </div>
 
-            {/* Error */}
             {error && (
               <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '12px 16px', color: '#f87171', fontSize: '14px', marginBottom: '16px' }}>
                 {error}
               </div>
             )}
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -107,12 +98,10 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Demo credentials */}
+          {/* Demo creds */}
           <div style={{ marginTop: '24px', background: '#1f2937', borderRadius: '8px', padding: '16px' }}>
-            <p style={{ color: '#6b7280', fontSize: '12px', fontWeight: '600', marginBottom: '8px', marginTop: 0 }}>
-              Demo credentials:
-            </p>
-            <div style={{ fontSize: '12px', lineHeight: '1.8' }}>
+            <p style={{ color: '#6b7280', fontSize: '12px', fontWeight: '600', margin: '0 0 8px' }}>Demo credentials:</p>
+            <div style={{ fontSize: '12px', lineHeight: 2 }}>
               <p style={{ margin: 0, color: '#6b7280' }}>Admin: <span style={{ color: '#d1d5db' }}>admin / Admin@SOC2024</span></p>
               <p style={{ margin: 0, color: '#6b7280' }}>Analyst: <span style={{ color: '#d1d5db' }}>analyst1 / Analyst@SOC2024</span></p>
               <p style={{ margin: 0, color: '#6b7280' }}>Viewer: <span style={{ color: '#d1d5db' }}>viewer1 / Viewer@SOC2024</span></p>

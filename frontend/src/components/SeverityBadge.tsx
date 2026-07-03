@@ -1,15 +1,29 @@
 interface Props { severity: string }
 
 const colors: Record<string, string> = {
-  CRITICAL: 'bg-red-500/20 text-red-400 border border-red-500/30',
-  HIGH:     'bg-orange-500/20 text-orange-400 border border-orange-500/30',
-  MEDIUM:   'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-  LOW:      'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+  CRITICAL: 'rgba(239,68,68,0.15)',
+  HIGH:     'rgba(249,115,22,0.15)',
+  MEDIUM:   'rgba(234,179,8,0.15)',
+  LOW:      'rgba(59,130,246,0.15)',
+}
+const textColors: Record<string, string> = {
+  CRITICAL: '#f87171',
+  HIGH:     '#fb923c',
+  MEDIUM:   '#facc15',
+  LOW:      '#60a5fa',
 }
 
 export default function SeverityBadge({ severity }: Props) {
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-bold ${colors[severity] || colors.LOW}`}>
+    <span style={{
+      padding: '2px 10px',
+      borderRadius: '999px',
+      fontSize: '11px',
+      fontWeight: 'bold',
+      background: colors[severity] || colors.LOW,
+      color: textColors[severity] || textColors.LOW,
+      border: `1px solid ${textColors[severity] || textColors.LOW}44`
+    }}>
       {severity}
     </span>
   )

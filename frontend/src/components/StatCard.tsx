@@ -10,14 +10,29 @@ interface Props {
 
 export default function StatCard({ title, value, icon, color, subtitle }: Props) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex items-center gap-4 hover:border-gray-700 transition-all">
-      <div className={`p-3 rounded-xl ${color}`}>
+    <div style={{
+      background: '#111827',
+      border: '1px solid #1f2937',
+      borderRadius: '12px',
+      padding: '20px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px'
+    }}>
+      <div style={{
+        padding: '12px',
+        borderRadius: '10px',
+        background: color,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
         {icon}
       </div>
       <div>
-        <p className="text-gray-400 text-sm">{title}</p>
-        <p className="text-white text-2xl font-bold">{value}</p>
-        {subtitle && <p className="text-gray-500 text-xs mt-1">{subtitle}</p>}
+        <p style={{ color: '#9ca3af', fontSize: '13px', margin: 0 }}>{title}</p>
+        <p style={{ color: 'white', fontSize: '26px', fontWeight: 'bold', margin: '2px 0' }}>{value}</p>
+        {subtitle && <p style={{ color: '#6b7280', fontSize: '11px', margin: 0 }}>{subtitle}</p>}
       </div>
     </div>
   )

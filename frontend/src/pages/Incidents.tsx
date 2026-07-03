@@ -1,33 +1,43 @@
 import { useEffect, useState } from 'react'
-import { RefreshCw, Shield } from 'lucide-react'
 import { getIncidents, assignIncident, resolveIncident } from '../services/api'
-import { Incident } from '../types'
 import SeverityBadge from '../components/SeverityBadge'
 import StatusBadge from '../components/StatusBadge'
 import { useAuth } from '../context/AuthContext'
 
+interface Incident {
+  incident_id: string
+  threat_id: string
+  status: string
+  severity?: string
+  event_type?: string
+  assigned_to?: string
+  notes?: string
+  resolution_notes?: string
+  created_at: string
+  updated_at?: string
+  resolved_at?: string
+}
+
 export default function Incidents() {
-  const [incidents, setIncidents] = useState<Incident[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [selected, setSelected]   = useState<Incident | null>(null)
-  const [filterStatus, setFilter] = useState('')
-  const [assignTo, setAssignTo]   = useState('')
-  const [notes, setNotes]         = useState('')
+  const [incidents, setIncidents]   = useState<Incident[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [selected, setSelected]     = useState<Incident | null>(null)
+  const [filterSt, setFilterSt]     = useState('')
+  const [assignTo, setAssignTo]     = useState('')
+  const [notes, setNotes]           = useState('')
   const [resolveNotes, setResolveNotes] = useState('')
-  const [action, setAction]       = useState<'assign' | 'resolve' | null>(null)
+  const [action, setAction]         = useState<'assign' | 'resolve' | null>(null)
   const { user } = useAuth()
 
   const fetchIncidents = async () => {
     setLoading(true)
     try {
-      const res = await getIncidents({ status: filterStatus || undefined })
+      const res = await getIncidents({ status: filterSt || undefined })
       setIncidents(res.data.items || [])
-    } finally {
-      setLoading(false)
-    }
+    } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchIncidents() }, [filterStatus])
+  useEffect(() => { fetchIncidents() }, [filterSt])
 
   const handleAssign = async () => {
     if (!selected || !assignTo) return
@@ -47,65 +57,63 @@ export default function Incidents() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">Incident Management</h1>
-          <p className="text-gray-400 text-sm">{incidents.length} incidents</p>
+          <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Incident Management</h1>
+          <p style={{ color: '#9ca3af', fontSize: '14px', margin: '4px 0 0' }}>{incidents.length} incidents</p>
         </div>
-        <div className="flex gap-3">
-          <select
-            value={filterStatus}
-            onChange={e => setFilter(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-300 text-sm focus:outline-none"
-          >
-            <option value="">All Statuses</option>
-            {['OPEN','ASSIGNED','RESOLVED'].map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <button onClick={fetchIncidents} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-all">
-            <RefreshCw className="w-4 h-4" />
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {['', 'OPEN', 'ASSIGNED', 'RESOLVED'].map(s => (
+            <button key={s} onClick={() => setFilterSt(s)}
+              style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', background: filterSt === s ? '#2563eb' : '#1f2937', color: filterSt === s ? 'white' : '#9ca3af' }}>
+              {s || 'All'}
+            </button>
+          ))}
+          <button onClick={fetchIncidents}
+            style={{ padding: '8px 12px', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', cursor: 'pointer' }}>
+            ↻
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Incident List */}
-        <div className="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      {/* Main Content */}
+      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 360px' : '1fr', gap: '20px' }}>
+
+        {/* Table */}
+        <div style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: '12px', overflow: 'hidden' }}>
           {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400" />
-            </div>
+            <div style={{ padding: '48px', textAlign: 'center', color: '#9ca3af' }}>Loading incidents...</div>
           ) : (
-            <table className="w-full">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="border-b border-gray-800 bg-gray-800/50">
+                <tr style={{ borderBottom: '1px solid #1f2937', background: 'rgba(31,41,55,0.5)' }}>
                   {['Incident ID', 'Threat ID', 'Event', 'Severity', 'Assigned To', 'Status'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">{h}</th>
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', color: '#6b7280', textTransform: 'uppercase' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody>
                 {incidents.map(inc => (
-                  <tr
-                    key={inc.incident_id}
-                    onClick={() => setSelected(inc)}
-                    className={`cursor-pointer hover:bg-gray-800/50 transition-colors ${selected?.incident_id === inc.incident_id ? 'bg-blue-900/20' : ''}`}
-                  >
-                    <td className="px-4 py-3 text-blue-400 text-xs font-mono">{inc.incident_id}</td>
-                    <td className="px-4 py-3 text-gray-400 text-xs font-mono">{inc.threat_id}</td>
-                    <td className="px-4 py-3 text-gray-300 text-sm">{inc.event_type || '—'}</td>
-                    <td className="px-4 py-3">
-                      {inc.severity ? <SeverityBadge severity={inc.severity} /> : '—'}
+                  <tr key={inc.incident_id} onClick={() => setSelected(inc)}
+                    style={{ borderBottom: '1px solid #1f2937', cursor: 'pointer', background: selected?.incident_id === inc.incident_id ? 'rgba(37,99,235,0.1)' : 'transparent' }}>
+                    <td style={{ padding: '12px 16px', color: '#60a5fa', fontSize: '12px', fontFamily: 'monospace' }}>{inc.incident_id}</td>
+                    <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: '12px', fontFamily: 'monospace' }}>{inc.threat_id}</td>
+                    <td style={{ padding: '12px 16px', color: '#d1d5db', fontSize: '13px' }}>{inc.event_type || '—'}</td>
+                    <td style={{ padding: '12px 16px' }}>
+                      {inc.severity ? <SeverityBadge severity={inc.severity} /> : <span style={{ color: '#6b7280' }}>—</span>}
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-sm">{inc.assigned_to || 'Unassigned'}</td>
-                    <td className="px-4 py-3"><StatusBadge status={inc.status} /></td>
+                    <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: '13px' }}>{inc.assigned_to || 'Unassigned'}</td>
+                    <td style={{ padding: '12px 16px' }}><StatusBadge status={inc.status} /></td>
                   </tr>
                 ))}
                 {incidents.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-gray-500">No incidents found</td>
+                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>
+                      No incidents found
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -113,111 +121,124 @@ export default function Incidents() {
           )}
         </div>
 
-        {/* Incident Detail */}
-        <div className="space-y-4">
-          {selected ? (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-white font-semibold">Incident Detail</h3>
-                <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-white text-xl">×</button>
-              </div>
+        {/* Detail Panel */}
+        {selected && (
+          <div style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ color: 'white', fontSize: '15px', fontWeight: '600', margin: 0 }}>Incident Detail</h3>
+              <button onClick={() => { setSelected(null); setAction(null) }}
+                style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '18px' }}>×</button>
+            </div>
 
-              <div className="space-y-3 text-sm">
-                {[
-                  ['Incident ID', selected.incident_id],
-                  ['Threat ID',   selected.threat_id],
-                  ['Created',     new Date(selected.created_at).toLocaleString()],
-                  ['Assigned To', selected.assigned_to || 'Unassigned'],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex justify-between">
-                    <span className="text-gray-400">{k}</span>
-                    <span className="text-gray-200 text-xs font-mono">{v}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Status</span>
-                  <StatusBadge status={selected.status} />
+            {/* Info */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+              {[
+                ['Incident ID', selected.incident_id],
+                ['Threat ID',   selected.threat_id],
+                ['Event',       selected.event_type || '—'],
+                ['Created',     new Date(selected.created_at).toLocaleString()],
+                ['Assigned To', selected.assigned_to || 'Unassigned'],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #1f2937' }}>
+                  <span style={{ color: '#6b7280' }}>{k}</span>
+                  <span style={{ color: '#d1d5db', fontSize: '12px', fontFamily: 'monospace' }}>{v}</span>
                 </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#6b7280' }}>Status</span>
+                <StatusBadge status={selected.status} />
               </div>
-
-              {selected.notes && (
-                <div className="bg-gray-800 rounded-lg p-3">
-                  <p className="text-gray-400 text-xs mb-1">Notes</p>
-                  <p className="text-gray-300 text-sm">{selected.notes}</p>
+              {selected.severity && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#6b7280' }}>Severity</span>
+                  <SeverityBadge severity={selected.severity} />
                 </div>
               )}
+            </div>
 
-              {selected.resolution_notes && (
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                  <p className="text-green-400 text-xs mb-1">Resolution</p>
-                  <p className="text-gray-300 text-sm">{selected.resolution_notes}</p>
-                </div>
-              )}
+            {/* Notes */}
+            {selected.notes && (
+              <div style={{ background: '#1f2937', borderRadius: '8px', padding: '12px' }}>
+                <p style={{ color: '#9ca3af', fontSize: '11px', margin: '0 0 4px' }}>Notes</p>
+                <p style={{ color: '#d1d5db', fontSize: '13px', margin: 0 }}>{selected.notes}</p>
+              </div>
+            )}
 
-              {user?.role !== 'viewer' && selected.status !== 'RESOLVED' && (
-                <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={() => setAction('assign')}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg transition-all"
-                  >
-                    Assign
+            {/* Resolution */}
+            {selected.resolution_notes && (
+              <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '8px', padding: '12px' }}>
+                <p style={{ color: '#4ade80', fontSize: '11px', margin: '0 0 4px' }}>Resolution</p>
+                <p style={{ color: '#d1d5db', fontSize: '13px', margin: 0 }}>{selected.resolution_notes}</p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {user?.role !== 'viewer' && selected.status !== 'RESOLVED' && !action && (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => setAction('assign')}
+                  style={{ flex: 1, background: '#2563eb', border: 'none', borderRadius: '8px', padding: '10px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                  Assign
+                </button>
+                <button onClick={() => setAction('resolve')}
+                  style={{ flex: 1, background: '#16a34a', border: 'none', borderRadius: '8px', padding: '10px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                  Resolve
+                </button>
+              </div>
+            )}
+
+            {/* Assign Form */}
+            {action === 'assign' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #1f2937', paddingTop: '16px' }}>
+                <input
+                  value={assignTo}
+                  onChange={e => setAssignTo(e.target.value)}
+                  placeholder="Assign to username"
+                  style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '10px', color: 'white', fontSize: '13px', outline: 'none' }}
+                />
+                <textarea
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  placeholder="Notes..."
+                  rows={3}
+                  style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '10px', color: 'white', fontSize: '13px', outline: 'none', resize: 'none' }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setAction(null)}
+                    style={{ flex: 1, background: '#374151', border: 'none', borderRadius: '8px', padding: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                    Cancel
                   </button>
-                  <button
-                    onClick={() => setAction('resolve')}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition-all"
-                  >
+                  <button onClick={handleAssign}
+                    style={{ flex: 1, background: '#2563eb', border: 'none', borderRadius: '8px', padding: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Resolve Form */}
+            {action === 'resolve' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #1f2937', paddingTop: '16px' }}>
+                <textarea
+                  value={resolveNotes}
+                  onChange={e => setResolveNotes(e.target.value)}
+                  placeholder="Resolution notes..."
+                  rows={3}
+                  style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '10px', color: 'white', fontSize: '13px', outline: 'none', resize: 'none' }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setAction(null)}
+                    style={{ flex: 1, background: '#374151', border: 'none', borderRadius: '8px', padding: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                    Cancel
+                  </button>
+                  <button onClick={handleResolve}
+                    style={{ flex: 1, background: '#16a34a', border: 'none', borderRadius: '8px', padding: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
                     Resolve
                   </button>
                 </div>
-              )}
-
-              {/* Assign Form */}
-              {action === 'assign' && (
-                <div className="space-y-3 border-t border-gray-800 pt-4">
-                  <input
-                    value={assignTo}
-                    onChange={e => setAssignTo(e.target.value)}
-                    placeholder="Assign to (username)"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none"
-                  />
-                  <textarea
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    placeholder="Notes..."
-                    rows={3}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none resize-none"
-                  />
-                  <div className="flex gap-2">
-                    <button onClick={() => setAction(null)} className="flex-1 bg-gray-700 text-white text-xs py-2 rounded-lg">Cancel</button>
-                    <button onClick={handleAssign} className="flex-1 bg-blue-600 text-white text-xs py-2 rounded-lg">Confirm</button>
-                  </div>
-                </div>
-              )}
-
-              {/* Resolve Form */}
-              {action === 'resolve' && (
-                <div className="space-y-3 border-t border-gray-800 pt-4">
-                  <textarea
-                    value={resolveNotes}
-                    onChange={e => setResolveNotes(e.target.value)}
-                    placeholder="Resolution notes..."
-                    rows={3}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none resize-none"
-                  />
-                  <div className="flex gap-2">
-                    <button onClick={() => setAction(null)} className="flex-1 bg-gray-700 text-white text-xs py-2 rounded-lg">Cancel</button>
-                    <button onClick={handleResolve} className="flex-1 bg-green-600 text-white text-xs py-2 rounded-lg">Resolve</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
-              <Shield className="w-8 h-8 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">Click an incident to manage it</p>
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,21 +1,35 @@
 import { useEffect, useState } from 'react'
-import { Search, Filter, RefreshCw, Plus, Eye } from 'lucide-react'
 import { getThreats, createThreat, updateThreatStatus } from '../services/api'
-import { Threat } from '../types'
 import SeverityBadge from '../components/SeverityBadge'
 import StatusBadge from '../components/StatusBadge'
 import AIAssistant from '../components/AIAssistant'
 import { useAuth } from '../context/AuthContext'
 
+interface Threat {
+  threat_id: string
+  event_type: string
+  severity: string
+  risk_score: number
+  source_ip: string
+  username: string
+  timestamp: string
+  status: string
+  description: string
+  region: string
+  resource_id?: string
+  ai_analysis?: string
+  recommendations?: string[]
+}
+
 export default function Threats() {
-  const [threats, setThreats]         = useState<Threat[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [selected, setSelected]       = useState<Threat | null>(null)
-  const [filterSev, setFilterSev]     = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
-  const [search, setSearch]           = useState('')
-  const [showCreate, setShowCreate]   = useState(false)
-  const [createForm, setCreateForm]   = useState({
+  const [threats, setThreats]       = useState<Threat[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [selected, setSelected]     = useState<Threat | null>(null)
+  const [filterSev, setFilterSev]   = useState('')
+  const [filterSt, setFilterSt]     = useState('')
+  const [search, setSearch]         = useState('')
+  const [showCreate, setShowCreate] = useState(false)
+  const [form, setForm] = useState({
     event_type: '', source_ip: '', username: '', description: ''
   })
   const { user } = useAuth()
@@ -25,16 +39,14 @@ export default function Threats() {
     try {
       const res = await getThreats({
         severity: filterSev || undefined,
-        status:   filterStatus || undefined,
+        status:   filterSt  || undefined,
         limit:    100
       })
       setThreats(res.data.items || [])
-    } finally {
-      setLoading(false)
-    }
+    } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchThreats() }, [filterSev, filterStatus])
+  useEffect(() => { fetchThreats() }, [filterSev, filterSt])
 
   const filtered = threats.filter(t =>
     search === '' ||
@@ -46,112 +58,97 @@ export default function Threats() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    await createThreat(createForm)
+    await createThreat(form)
     setShowCreate(false)
-    setCreateForm({ event_type: '', source_ip: '', username: '', description: '' })
+    setForm({ event_type: '', source_ip: '', username: '', description: '' })
     fetchThreats()
   }
 
-  const handleStatusChange = async (id: string, status: string) => {
+  const handleStatus = async (id: string, status: string) => {
     await updateThreatStatus(id, status)
     fetchThreats()
-    if (selected?.threat_id === id) setSelected(null)
+    setSelected(null)
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">Threat Monitor</h1>
-          <p className="text-gray-400 text-sm">{threats.length} threats detected</p>
+          <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Threat Monitor</h1>
+          <p style={{ color: '#9ca3af', fontSize: '14px', margin: '4px 0 0' }}>{threats.length} threats detected</p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={fetchThreats} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition-all">
-            <RefreshCw className="w-4 h-4" />
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={fetchThreats}
+            style={{ padding: '8px 12px', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#9ca3af', cursor: 'pointer' }}>
+            ↻ Refresh
           </button>
           {user?.role !== 'viewer' && (
-            <button
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-all"
-            >
-              <Plus className="w-4 h-4" /> Create Threat
+            <button onClick={() => setShowCreate(true)}
+              style={{ padding: '8px 16px', background: '#2563eb', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
+              + Create Threat
             </button>
           )}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search threats..."
-            className="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white text-sm focus:outline-none focus:border-blue-500 w-64"
-          />
-        </div>
-        <select
-          value={filterSev}
-          onChange={e => setFilterSev(e.target.value)}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-300 text-sm focus:outline-none"
-        >
-          <option value="">All Severities</option>
-          {['CRITICAL','HIGH','MEDIUM','LOW'].map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-        <select
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-300 text-sm focus:outline-none"
-        >
-          <option value="">All Statuses</option>
-          {['OPEN','ASSIGNED','RESOLVED','DISMISSED'].map(s => (
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="🔍 Search threats..."
+          style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '8px 14px', color: 'white', fontSize: '14px', outline: 'none', width: '240px' }}
+        />
+        {['', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(s => (
+          <button key={s} onClick={() => setFilterSev(s)}
+            style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', background: filterSev === s ? '#2563eb' : '#1f2937', color: filterSev === s ? 'white' : '#9ca3af' }}>
+            {s || 'All Severity'}
+          </button>
+        ))}
+        <select value={filterSt} onChange={e => setFilterSt(e.target.value)}
+          style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '8px 14px', color: '#9ca3af', fontSize: '13px', outline: 'none' }}>
+          <option value="">All Status</option>
+          {['OPEN', 'ASSIGNED', 'RESOLVED', 'DISMISSED'].map(s => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Threat Table */}
-        <div className="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      {/* Main Content */}
+      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: '20px' }}>
+
+        {/* Table */}
+        <div style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: '12px', overflow: 'hidden' }}>
           {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400" />
-            </div>
+            <div style={{ padding: '48px', textAlign: 'center', color: '#9ca3af' }}>Loading threats...</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr className="border-b border-gray-800 bg-gray-800/50">
-                    {['ID', 'Event', 'Severity', 'User', 'Status', ''].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                        {h}
-                      </th>
+                  <tr style={{ borderBottom: '1px solid #1f2937', background: 'rgba(31,41,55,0.5)' }}>
+                    {['ID', 'Event', 'Severity', 'User', 'Source IP', 'Status', ''].map(h => (
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', color: '#6b7280', textTransform: 'uppercase' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody>
                   {filtered.map(t => (
-                    <tr
-                      key={t.threat_id}
-                      className={`hover:bg-gray-800/50 transition-colors cursor-pointer ${selected?.threat_id === t.threat_id ? 'bg-blue-900/20' : ''}`}
-                      onClick={() => setSelected(t)}
-                    >
-                      <td className="px-4 py-3 text-blue-400 text-xs font-mono">{t.threat_id}</td>
-                      <td className="px-4 py-3 text-gray-300 text-sm">{t.event_type}</td>
-                      <td className="px-4 py-3"><SeverityBadge severity={t.severity} /></td>
-                      <td className="px-4 py-3 text-gray-400 text-sm">{t.username}</td>
-                      <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
-                      <td className="px-4 py-3">
-                        <Eye className="w-4 h-4 text-gray-500 hover:text-blue-400" />
-                      </td>
+                    <tr key={t.threat_id} onClick={() => setSelected(t)}
+                      style={{ borderBottom: '1px solid #1f2937', cursor: 'pointer', background: selected?.threat_id === t.threat_id ? 'rgba(37,99,235,0.1)' : 'transparent' }}>
+                      <td style={{ padding: '12px 16px', color: '#60a5fa', fontSize: '12px', fontFamily: 'monospace' }}>{t.threat_id}</td>
+                      <td style={{ padding: '12px 16px', color: '#d1d5db', fontSize: '13px' }}>{t.event_type}</td>
+                      <td style={{ padding: '12px 16px' }}><SeverityBadge severity={t.severity} /></td>
+                      <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: '13px' }}>{t.username}</td>
+                      <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: '12px', fontFamily: 'monospace' }}>{t.source_ip}</td>
+                      <td style={{ padding: '12px 16px' }}><StatusBadge status={t.status} /></td>
+                      <td style={{ padding: '12px 16px', color: '#6b7280' }}>👁</td>
                     </tr>
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                      <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>
                         No threats found
                       </td>
                     </tr>
@@ -162,104 +159,94 @@ export default function Threats() {
           )}
         </div>
 
-        {/* Threat Detail Panel */}
-        <div className="space-y-4">
-          {selected ? (
-            <>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-white font-semibold">Threat Detail</h3>
-                  <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-white text-xl">×</button>
-                </div>
-                <div className="space-y-3 text-sm">
-                  {[
-                    ['ID',          selected.threat_id],
-                    ['Event',       selected.event_type],
-                    ['Risk Score',  `${selected.risk_score}/100`],
-                    ['Source IP',   selected.source_ip],
-                    ['Username',    selected.username],
-                    ['Region',      selected.region],
-                    ['Time',        new Date(selected.timestamp).toLocaleString()],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex justify-between">
-                      <span className="text-gray-400">{k}</span>
-                      <span className="text-gray-200 font-mono text-xs">{v}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Severity</span>
-                    <SeverityBadge severity={selected.severity} />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Status</span>
-                    <StatusBadge status={selected.status} />
-                  </div>
-                </div>
-                <p className="text-gray-400 text-xs leading-relaxed border-t border-gray-800 pt-3">
-                  {selected.description}
-                </p>
-                {user?.role !== 'viewer' && (
-                  <div className="flex gap-2 pt-2">
-                    {selected.status === 'OPEN' && (
-                      <button
-                        onClick={() => handleStatusChange(selected.threat_id, 'DISMISSED')}
-                        className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 rounded-lg transition-all"
-                      >
-                        Dismiss
-                      </button>
-                    )}
-                    {selected.status !== 'RESOLVED' && (
-                      <button
-                        onClick={() => handleStatusChange(selected.threat_id, 'RESOLVED')}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition-all"
-                      >
-                        Mark Resolved
-                      </button>
-                    )}
-                  </div>
-                )}
+        {/* Detail Panel */}
+        {selected && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: '12px', padding: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ color: 'white', fontSize: '15px', fontWeight: '600', margin: 0 }}>Threat Detail</h3>
+                <button onClick={() => setSelected(null)}
+                  style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '18px' }}>×</button>
               </div>
-              <AIAssistant threat={selected} />
-            </>
-          ) : (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
-              <Eye className="w-8 h-8 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">Click a threat to view details and AI analysis</p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                {[
+                  ['ID',         selected.threat_id],
+                  ['Event',      selected.event_type],
+                  ['Risk Score', `${selected.risk_score}/100`],
+                  ['Source IP',  selected.source_ip],
+                  ['Username',   selected.username],
+                  ['Region',     selected.region],
+                  ['Time',       new Date(selected.timestamp).toLocaleString()],
+                ].map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #1f2937' }}>
+                    <span style={{ color: '#6b7280' }}>{k}</span>
+                    <span style={{ color: '#d1d5db', fontFamily: 'monospace', fontSize: '12px' }}>{v}</span>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#6b7280' }}>Severity</span>
+                  <SeverityBadge severity={selected.severity} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#6b7280' }}>Status</span>
+                  <StatusBadge status={selected.status} />
+                </div>
+              </div>
+
+              <p style={{ color: '#9ca3af', fontSize: '12px', lineHeight: '1.6', marginTop: '12px', borderTop: '1px solid #1f2937', paddingTop: '12px' }}>
+                {selected.description}
+              </p>
+
+              {user?.role !== 'viewer' && selected.status !== 'RESOLVED' && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <button onClick={() => handleStatus(selected.threat_id, 'DISMISSED')}
+                    style={{ flex: 1, background: '#374151', border: 'none', borderRadius: '8px', padding: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                    Dismiss
+                  </button>
+                  <button onClick={() => handleStatus(selected.threat_id, 'RESOLVED')}
+                    style={{ flex: 1, background: '#16a34a', border: 'none', borderRadius: '8px', padding: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                    Resolve
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            <AIAssistant threat={selected} />
+          </div>
+        )}
       </div>
 
-      {/* Create Threat Modal */}
+      {/* Create Modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-white font-semibold mb-4">Create Manual Threat</h3>
-            <form onSubmit={handleCreate} className="space-y-4">
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+          <div style={{ background: '#111827', border: '1px solid #374151', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '440px' }}>
+            <h3 style={{ color: 'white', fontSize: '16px', fontWeight: '600', margin: '0 0 20px' }}>Create Manual Threat</h3>
+            <form onSubmit={handleCreate}>
               {[
                 { label: 'Event Type', key: 'event_type', placeholder: 'e.g. ConsoleLogin_Root' },
-                { label: 'Source IP',  key: 'source_ip',  placeholder: 'e.g. 192.168.1.1' },
-                { label: 'Username',   key: 'username',   placeholder: 'e.g. attacker' },
+                { label: 'Source IP',  key: 'source_ip',  placeholder: 'e.g. 203.0.113.1'      },
+                { label: 'Username',   key: 'username',   placeholder: 'e.g. attacker'          },
                 { label: 'Description', key: 'description', placeholder: 'Describe the threat...' },
               ].map(f => (
-                <div key={f.key}>
-                  <label className="block text-gray-400 text-sm mb-1">{f.label}</label>
+                <div key={f.key} style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', color: '#9ca3af', fontSize: '13px', marginBottom: '6px' }}>{f.label}</label>
                   <input
-                    value={createForm[f.key as keyof typeof createForm]}
-                    onChange={e => setCreateForm(p => ({ ...p, [f.key]: e.target.value }))}
+                    value={form[f.key as keyof typeof form]}
+                    onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                     placeholder={f.placeholder}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
                     required
+                    style={{ width: '100%', background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', padding: '10px 14px', color: 'white', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
               ))}
-              <div className="flex gap-3 pt-2">
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                 <button type="button" onClick={() => setShowCreate(false)}
-                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2.5 rounded-lg text-sm transition-all">
+                  style={{ flex: 1, background: '#374151', border: 'none', borderRadius: '8px', padding: '10px', color: 'white', cursor: 'pointer' }}>
                   Cancel
                 </button>
                 <button type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm transition-all">
+                  style={{ flex: 1, background: '#2563eb', border: 'none', borderRadius: '8px', padding: '10px', color: 'white', cursor: 'pointer' }}>
                   Create
                 </button>
               </div>
@@ -267,6 +254,7 @@ export default function Threats() {
           </div>
         </div>
       )}
+
     </div>
   )
 }
