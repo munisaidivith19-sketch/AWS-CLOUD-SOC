@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from services.analytics_service import AnalyticsService
 from middleware.auth_middleware import get_current_user
 
-router = APIRouter(prefix="/analytics", tags=["Analytics"])
+router  = APIRouter(prefix="/analytics", tags=["Analytics"])
 service = AnalyticsService()
 
 @router.get("/severity")
@@ -26,3 +26,13 @@ def top_threats(
 @router.get("/summary")
 def summary_stats(current_user=Depends(get_current_user)):
     return service.get_summary_stats()
+
+@router.get("/active-users")
+def most_active_users(current_user=Depends(get_current_user)):
+    """Top IAM users by threat activity."""
+    return service.get_most_active_users()
+
+@router.get("/risk-trend")
+def risk_trend(current_user=Depends(get_current_user)):
+    """Average risk score per day over last 30 days."""
+    return service.get_risk_trend()
