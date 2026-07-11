@@ -2,13 +2,16 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const links = [
-  { to: '/',          emoji: '🏠', label: 'Dashboard'  },
-  { to: '/threats',   emoji: '⚠️',  label: 'Threats'    },
-  { to: '/incidents', emoji: '🛡️',  label: 'Incidents'  },
-  { to: '/assets',    emoji: '🖥️',  label: 'Assets'     },
-  { to: '/analytics', emoji: '📊', label: 'Analytics'  },
+  { to: '/',              emoji: '🏠', label: 'Dashboard'        },
+  { to: '/threats',       emoji: '⚠️',  label: 'Threats'          },
+  { to: '/incidents',     emoji: '🛡️',  label: 'Incidents'        },
+  { to: '/live',          emoji: '📡', label: 'Live Monitor'     },
+  { to: '/ai',            emoji: '🤖', label: 'AI Investigation' },
+  { to: '/reports',       emoji: '📊', label: 'Reports'          },
+  { to: '/assets',        emoji: '🖥️',  label: 'Assets'           },
+  { to: '/analytics',     emoji: '📈', label: 'Analytics'        },
+  { to: '/users',         emoji: '👥', label: 'User Management'  },
 ]
-
 export default function Sidebar() {
   const { user, logoutUser } = useAuth()
 

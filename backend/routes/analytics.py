@@ -29,10 +29,20 @@ def summary_stats(current_user=Depends(get_current_user)):
 
 @router.get("/active-users")
 def most_active_users(current_user=Depends(get_current_user)):
-    """Top IAM users by threat activity."""
     return service.get_most_active_users()
+
+@router.get("/top-ips")
+def top_source_ips(current_user=Depends(get_current_user)):
+    return service.get_top_source_ips()
 
 @router.get("/risk-trend")
 def risk_trend(current_user=Depends(get_current_user)):
-    """Average risk score per day over last 30 days."""
     return service.get_risk_trend()
+
+@router.get("/incident-trend")
+def incident_trend(current_user=Depends(get_current_user)):
+    return service.get_incident_trend()
+
+@router.get("/audit-logs")
+def audit_log_stats(current_user=Depends(get_current_user)):
+    return service.get_audit_log_stats()

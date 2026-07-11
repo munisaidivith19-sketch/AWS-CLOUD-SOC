@@ -43,11 +43,23 @@
           "PoolId"
         ]
       },
+      "ListProtectConfigurationRuleSetNumberOverrides": {
+          "non_aggregate_keys": [
+            "ProtectConfigurationId",
+            "ProtectConfigurationArn"
+          ]
+      },
       "ListRegistrationAssociations": {
         "non_aggregate_keys": [
           "RegistrationId",
           "RegistrationArn",
           "RegistrationType"
+        ]
+      },
+      "DescribeRcsAgentCountryLaunchStatus": {
+        "non_aggregate_keys": [
+          "RcsAgentArn",
+          "RcsAgentId"
         ]
       }
     }
