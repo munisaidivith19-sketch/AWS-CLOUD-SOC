@@ -41,7 +41,7 @@ export default function Reports() {
   const [history, setHistory]     = useState<any[]>([])
   const [generating, setGenerating] = useState(false)
   const [previewing, setPreviewing] = useState(false)
-  const [loading, setLoading]     = useState(true)
+  const [_loading, setLoading]     = useState(true)
   const [activeTab, setActiveTab] = useState<'generate' | 'history'>('generate')
 
   const token = localStorage.getItem('soc_token')

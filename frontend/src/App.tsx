@@ -15,14 +15,18 @@ import UserManagement  from './pages/UserManagement'
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth()
   if (!isAuthenticated) return <Navigate to="/login" replace />
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#04060f' }}>
       <Sidebar />
       <main style={{
-        flex: 1, marginLeft: '256px', padding: '24px',
-        minHeight: '100vh', background: '#060818',
-        backgroundImage: 'radial-gradient(ellipse at 20% 20%, rgba(114,9,183,0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(76,201,240,0.08) 0%, transparent 50%)',
-        backgroundAttachment: 'fixed'
+        flex: 1,
+        marginLeft: '260px',
+        padding: '20px 24px',
+        minHeight: '100vh',
+        position: 'relative',
+        zIndex: 1,
+        overflowX: 'hidden',
       }}>
         <Routes>
           <Route path="/"          element={<Dashboard />} />

@@ -1,0 +1,3 @@
+can you add the animation to the therats and incodent sub dashboard in this can you add the glass effect animation on that use this link for the incident :- https://www.istockphoto.com/en/video/digital-data-protection-security-icon-binary-code-wave-blue-background-gm1629474406-532358515               and   this is link is for the threats animation :- https://www.istockphoto.com/en/video/circuit-board-background-copy-space-blue-loopable-animation-computer-data-technology-gm1224356307-359954890     .
+
+make sure that every cards and should be in the glasss effect and it should like in the 4k with nit coulur and glass to them and it should use in the backgorund of the sub dashboard and in this   it should match tto the colours 
